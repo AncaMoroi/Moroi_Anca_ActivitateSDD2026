@@ -18,3 +18,7 @@ struct Apartament initializare() {
 	return a;
 
 }
+
+void afisare() {
+
+}
