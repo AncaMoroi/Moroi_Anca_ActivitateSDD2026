@@ -19,7 +19,7 @@ Masina citireMasinaDinFisier(FILE* file) {
 	char sep[3] = ",\n";
 	fgets(buffer, 100, file);
 	char* aux;
-	Masina m1;
+	Masina m1 = { 0 };
 	aux = strtok(buffer, sep);
 	m1.id = atoi(aux);
 	aux = strtok(NULL, sep);
@@ -84,6 +84,13 @@ void adaugaNodInceput(NodPrincipal** lista, Masina m) {
 	*lista = nou;
 }
 
+void inserareListaSecundara(NodSecundar** cap, NodPrincipal* nodInfo) {
+	NodSecundar* nou = (NodSecundar*)malloc(sizeof(NodSecundar));
+	nou->nodInfo = nodInfo;
+	nou->next = *cap;
+	*cap = nou;
+}
+
 NodPrincipal* cautaDupaID(NodPrincipal* lista, int id) {
 	while (lista) {
 		if (lista->info.id == id)
@@ -108,10 +115,61 @@ void adaugaMuchie(NodPrincipal* lista, int idStart, int idFinal) {
 
 //graf neorientat
 void inserareMuchie(NodPrincipal* graf, int idStart, int idStop) {
-	NodPrincipal* nodStart = cautaNodDupaID(graf, idStart);
-	NodPrincipal* nodStop = cautaNodDupaID(graf, idStop);
+	NodPrincipal* nodStart = cautaDupaID(graf, idStart);
+	NodPrincipal* nodStop = cautaDupaID(graf, idStop);
 	if (nodStart && nodStop) {
 		inserareListaSecundara(&(nodStart->vecini), nodStop);
 		inserareListaSecundara(&(nodStop->vecini), nodStart);
 	}
+}
+
+NodPrincipal* citireNodFisier(const char* numeFisier) {
+	FILE* f = fopen(numeFisier, "r");
+	NodPrincipal* graf = NULL;
+	if (f) {
+		while (!feof(f)) {
+			adaugaNod(&graf, citireMasinaDinFisier(f));
+		}
+		fclose(f);
+	}
+	return graf;
+}
+
+void afisareGraf(NodPrincipal* graf) {
+	while (graf) {
+		afisareMasina(graf->info);
+
+		NodSecundar* v = graf->vecini;
+		printf("Vecini: ");
+		while (v) {
+			printf("%d ", v->nodInfo->info.id);
+			v = v->next;
+		}
+
+		printf("\n-----------------\n");
+		graf = graf->next;
+	}
+}
+
+void citireMuchiiFisier(NodPrincipal* graf, const char* numeFisier) {
+	FILE* f = fopen(numeFisier, "r");
+	while (f && !feof(f)) {
+		int idStart = 0;
+		int idStop = 1;
+		fscanf(f, "%d %d", &idStart, &idStop);
+		inserareMuchie(graf, idStart, idStop);
+	}
+	fclose(f);
+}
+
+int main() {
+	NodPrincipal* graf = citireNodFisier("masini.txt");
+
+	citireMuchiiFisier(graf, "muchii.txt");
+
+	afisareGraf(graf);
+
+
+
+	return 0;
 }
